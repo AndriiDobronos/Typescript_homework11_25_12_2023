@@ -1,0 +1,36 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/dist
+/src/indexFirst.ts
+/src/lection3.ts
+/src/indexSecond.ts
+/src/lection4.ts
+/src/lection5.ts
+/src/lection7.ts
+/src/indexHomework2.ts
+/src/indexHomework3.ts
+/src/indexHomework4.ts
+/src/indexHomework5.ts
+/src/indexHomework7.ts
+/src/indexHomework8.ts
+/src/indexHomework9.ts
+/src/indexHomework10.ts
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
