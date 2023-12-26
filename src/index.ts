@@ -16,12 +16,7 @@
 
 interface INote {
     _id: number;
-    _title: string;
-    _content: string;
     _creationDate: Date;
-    _lastModifiedDate: Date;
-    _confirmedEdit: boolean;
-    _completed: boolean;
 }
 
 class Note implements INote {
@@ -98,41 +93,6 @@ class Note implements INote {
     }
 }
 
-interface ISearchNotes {
-    notes: Note[];
-    searchNotesByTitleOrContent(keyword: string): Note[];
-}
-
-class SearchNotes implements ISearchNotes{
-    private notes: Note[];
-
-    searchNotesByTitleOrContent(keyword: string): Note[] {
-        return this.notes.filter(
-            (note) =>
-                note.title.toLowerCase().includes(keyword.toLowerCase()) ||
-                note.content.toLowerCase().includes(keyword.toLowerCase())
-        );
-    }
-}
-
-interface ISortNotes {
-    notes: Note[];
-    sortNotesByStatus(): void;
-    sortNotesByCreationDate(): void;
-}
-
-class SortNotes implements ISortNotes {
-    notes: Note[];
-
-    sortNotesByStatus(): void {
-        this.notes.sort((a, b) => Number(a.completed) - Number(b.completed));
-    }
-
-    sortNotesByCreationDate(): void {
-        this.notes.sort((a, b) => a.creationDate.getTime() - b.creationDate.getTime());
-    }
-}
-
 interface ITodoList {
     notes: Note[];
     addNote(note: Note): void;
@@ -145,11 +105,10 @@ interface ITodoList {
     autoDeleteEmptyNotes (): Note[];
 }
 
-class TodoList extends SearchNotes,SortNotes implements ITodoList {
-    private notes: Note[];
+class TodoList implements ITodoList {
+    notes: Note[];
 
     constructor() {
-        super()
         this.notes = [];
     }
 
@@ -191,5 +150,40 @@ class TodoList extends SearchNotes,SortNotes implements ITodoList {
                 note.content.length !== 0 &&
                 note.title.length !== 0
         );
+    }
+}
+
+interface ITodoListWithSearchNotes extends ITodoList {
+    notes: Note[];
+    searchNotesByTitleOrContent(keyword: string): Note[];
+}
+
+class TodoListWithSearchNotes extends TodoList implements ITodoListWithSearchNotes {
+    notes: Note[];
+
+    searchNotesByTitleOrContent(keyword: string): Note[] {
+        return this.notes.filter(
+            (note) =>
+                note.title.toLowerCase().includes(keyword.toLowerCase()) ||
+                note.content.toLowerCase().includes(keyword.toLowerCase())
+        );
+    }
+}
+
+interface ITodoListWithSortNotesAndWithSearchNotes extends ITodoListWithSearchNotes {
+    notes: Note[];
+    sortNotesByStatus(): void;
+    sortNotesByCreationDate(): void;
+}
+
+class TodoListWithSortNotesAndWithSearchNotes extends TodoListWithSearchNotes implements ITodoListWithSortNotesAndWithSearchNotes {
+    notes: Note[];
+
+    sortNotesByStatus(): void {
+        this.notes.sort((a, b) => Number(a.completed) - Number(b.completed));
+    }
+
+    sortNotesByCreationDate(): void {
+        this.notes.sort((a, b) => a.creationDate.getTime() - b.creationDate.getTime());
     }
 }
