@@ -41,27 +41,6 @@ class Note implements INote {
         this._completed = false;
     }
 
-    get id(): number {
-        return this.id;
-    }
-
-    get title(): string {
-        return this.title;
-    }
-
-    // set title(newTitle: string) {
-    //     if (!this._confirmedEdit) {
-    //         this._title = newTitle;
-    //         this._lastModifiedDate = new Date();
-    //     } else {
-    //         console.log("This note requires confirmation before editing the title.");
-    //     }
-    // }
-
-    get content(): string {
-        return this.content;
-    }
-
     setEdit(newTitle: string,newContent: string):void {
         if (!this._confirmedEdit) {
             this.title = newTitle;
@@ -70,19 +49,6 @@ class Note implements INote {
         } else {
             console.log("This note requires confirmation before editing the title.");
         }
-    }
-
-    // set content(newContent: string) {
-    //     if (!this._confirmedEdit) {
-    //         this._content = newContent;
-    //         this._lastModifiedDate = new Date();
-    //     } else {
-    //         console.log("This note requires confirmation before editing the content.");
-    //     }
-    // }
-
-    get creationDate(): Date {
-        return this.creationDate;
     }
 
     get lastModifiedDate(): Date {
