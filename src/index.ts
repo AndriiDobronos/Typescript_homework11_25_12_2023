@@ -15,61 +15,74 @@
 // або часом створення.
 
 interface INote {
-    _id: number;
-    _creationDate: Date;
+    id: number;
+    creationDate: Date;
+    title: string;
+    content: string;
+    setEdit(newTitle: string,newContent: string): void
 }
 
 class Note implements INote {
-    readonly _id: number;
-    private _title: string;
-    private _content: string;
-    readonly _creationDate: Date;
+    readonly id: number;
+    title: string;
+    content: string;
+    readonly creationDate: Date;
     private _lastModifiedDate: Date;
     private _confirmedEdit: boolean;
     private _completed: boolean;
 
     constructor(id: number, title: string, content: string, confirmedEdit: boolean = false) {
-        this._id = id;
-        this._title = title;
-        this._content = content;
-        this._creationDate = new Date();
+        this.id = id;
+        this.title = title;
+        this.content = content;
+        this.creationDate = new Date();
         this._lastModifiedDate = new Date();
         this._confirmedEdit = confirmedEdit;
         this._completed = false;
     }
 
     get id(): number {
-        return this._id;
+        return this.id;
     }
 
     get title(): string {
-        return this._title;
+        return this.title;
     }
 
-    set title(newTitle: string) {
+    // set title(newTitle: string) {
+    //     if (!this._confirmedEdit) {
+    //         this._title = newTitle;
+    //         this._lastModifiedDate = new Date();
+    //     } else {
+    //         console.log("This note requires confirmation before editing the title.");
+    //     }
+    // }
+
+    get content(): string {
+        return this.content;
+    }
+
+    setEdit(newTitle: string,newContent: string):void {
         if (!this._confirmedEdit) {
-            this._title = newTitle;
+            this.title = newTitle;
+            this.content = newContent;
             this._lastModifiedDate = new Date();
         } else {
             console.log("This note requires confirmation before editing the title.");
         }
     }
 
-    get content(): string {
-        return this._content;
-    }
-
-    set content(newContent: string) {
-        if (!this._confirmedEdit) {
-            this._content = newContent;
-            this._lastModifiedDate = new Date();
-        } else {
-            console.log("This note requires confirmation before editing the content.");
-        }
-    }
+    // set content(newContent: string) {
+    //     if (!this._confirmedEdit) {
+    //         this._content = newContent;
+    //         this._lastModifiedDate = new Date();
+    //     } else {
+    //         console.log("This note requires confirmation before editing the content.");
+    //     }
+    // }
 
     get creationDate(): Date {
-        return this._creationDate;
+        return this.creationDate;
     }
 
     get lastModifiedDate(): Date {
@@ -153,7 +166,7 @@ class TodoList implements ITodoList {
     }
 }
 
-interface ITodoListWithSearchNotes extends ITodoList {
+interface ITodoListWithSearchNotes {
     notes: Note[];
     searchNotesByTitleOrContent(keyword: string): Note[];
 }
@@ -170,7 +183,7 @@ class TodoListWithSearchNotes extends TodoList implements ITodoListWithSearchNot
     }
 }
 
-interface ITodoListWithSortNotesAndWithSearchNotes extends ITodoListWithSearchNotes {
+interface ITodoListWithSortNotesAndWithSearchNotes {
     notes: Note[];
     sortNotesByStatus(): void;
     sortNotesByCreationDate(): void;
