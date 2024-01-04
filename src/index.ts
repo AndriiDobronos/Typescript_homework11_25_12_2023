@@ -1,168 +1,269 @@
-//Вам необхідно написати додаток Todo list. У списку нотаток повинні бути методи
-// для додавання нового запису, видалення, редагування та отримання повної
-// інформації про нотатку за ідентифікатором, а так само отримання списку
-// всіх нотаток. Крім цього, у користувача має бути можливість позначити нотатку,
-// як виконану, і отримання інформації про те, скільки всього нотаток у списку
-// і скільки залишилося невиконаними. Нотатки не повинні бути порожніми.
+//Ми розробляємо систему управління розумним будинком.
+//
+// Ми можемо керувати світлом, системою кондиціонування та безпеки через
+// контрольну панель, що знаходиться у будинку.
+//
+// Light, AirConditioner та SecuritySystem не можна змінювати, це девайси
+// різних фірм, які надають деяке публічне апі для керування, яке можна
+// використовувати, щоб інтегрувати з нашою системою, та ми не можемо змінювати
+// їх реалізацію або поведінку!
+//
+// Наш клас HomeControlPanel має методи leaveHome та backHome та toggleDevice.
+// За допомогою leaveHome ми вимикаємо всі девайси та вмикаємо систему безпеки
+//
+// За допомогою backHome вмикаємо всі девайси та вимикаємо систему безпеки.
+//
+// toggleDevice вмикає або вимикає девайс в залежності від його стану.
+//
+// Пізніше ми додали новий метод контролю за розумним будинком - через
+// дистанційний пульт RemoteControl. Він не має доступу до управління системою
+// безпеки, але вміє керувати світлом та кондиціонером.
+//
+// Ваша задача відрефакторити існуючий код (окрім Light, AirConditioner та
+// SecuritySystem) використовуючи деякі патерн(и) які ми з вами розглянули на лекції.
+// Постарайтеся позбутися дублювання коду у класах та уніфікувати публічне апі девайсів.
+//
+// P.S: Не потрібно витрачати час на розбоку UI або модифікувати поведінку.
+// Приділіть більше уваги структуризації.
 
-// Кожний нотаток має назву, зміст, дату створення (або редагування) та статус.
-// Нотатки бувають двох типів. Дефолтні та такі, які вимагають підтвердження при редагуванні.
-
-// Окремо необхідно розширити поведінку списку та додати можливість пошуку нотатка
-// за ім'ям або змістом.
-
-// Також окремо необхідно розширити список можливістю сортування нотаток за статусом
-// або часом створення.
-
-interface INote {
-    id: number;
-    creationDate: Date;
-    title: string;
-    content: string;
-    setEdit(newTitle: string,newContent: string): void
+enum EDeviceType {
+    Light = "light",
+    AirConditioner = "air-conditioner",
+    SecuritySystem = "security-system",
 }
 
-class Note implements INote {
-    readonly id: number;
-    title: string;
-    content: string;
-    readonly creationDate: Date;
-    private _lastModifiedDate: Date;
-    private _confirmedEdit: boolean;
-    private _completed: boolean;
+class Light {
+    // НЕ ЗМІНЮЙТЕ ЦЕЙ  КЛАС
 
-    constructor(id: number, title: string, content: string, confirmedEdit: boolean = false) {
-        this.id = id;
-        this.title = title;
-        this.content = content;
-        this.creationDate = new Date();
-        this._lastModifiedDate = new Date();
-        this._confirmedEdit = confirmedEdit;
-        this._completed = false;
+    type = EDeviceType.Light;
+    #isTurnedOn = false;
+
+    get isTurnedOn(): boolean {
+        return this.#isTurnedOn;
     }
 
-    setEdit(newTitle: string,newContent: string):void {
-        if (!this._confirmedEdit) {
-            this.title = newTitle;
-            this.content = newContent;
-            this._lastModifiedDate = new Date();
+    turnOn() {
+        this.#isTurnedOn = true;
+        console.log("Light is ON");
+    }
+
+    turnOff() {
+        this.#isTurnedOn = false;
+        console.log("Light is OFF");
+
+    }
+
+}
+
+
+class AirConditioner {
+    // НЕ ЗМІНЮЙТЕ ЦЕЙ  КЛАС
+    type = EDeviceType.AirConditioner;
+    #isWorking = false;
+
+    get isWorking(): boolean {
+        return this.#isWorking;
+    }
+
+    start() {
+        this.#isWorking = true;
+        console.log("Air Conditioner is ON");
+    }
+
+    stop() {
+        this.#isWorking = false;
+        console.log("Air Conditioner is OFF");
+    }
+}
+
+class SecuritySystem {
+    // НЕ ЗМІНЮЙТЕ ЦЕЙ  КЛАС
+
+    type = EDeviceType.SecuritySystem;
+    #isWatching = false;
+
+    get isWatching(): boolean {
+        return this.#isWatching;
+    }
+
+    enable() {
+        this.#isWatching = true;
+        console.log("Security system is ON");
+    }
+
+    disable() {
+        this.#isWatching = false;
+        console.log("Security system is OFF");
+    }
+}
+
+class HomeControlPanel {
+    #light: Light;
+    #airConditioner: AirConditioner;
+    #securitySystem: SecuritySystem;
+
+    constructor(
+        light: Light,
+        airConditioner: AirConditioner,
+        securitySystem: SecuritySystem
+
+    ) {
+        this.#light = light;
+        this.#securitySystem = securitySystem;
+        this.#airConditioner = airConditioner;
+    }
+
+    toggleDevice(type: EDeviceType) {
+        // Some additional business logic.....
+
+        if (type === EDeviceType.Light) {
+            if (this.#light.isTurnedOn) {
+                this.#light.turnOff();
+            } else {
+                this.#light.turnOff();
+            }
+        } else if (type === EDeviceType.AirConditioner) {
+            if (this.#airConditioner.isWorking) {
+                this.#airConditioner.stop();
+            } else {
+                this.#airConditioner.start();
+            }
+
+        } else if (type === EDeviceType.SecuritySystem) {
+            if (this.#securitySystem.isWatching) {
+                this.#securitySystem.disable();
+            } else {
+                this.#securitySystem.enable();
+            }
+        }
+    }
+
+    leaveHome(): void {
+        // Some additional business logic.....
+
+        this.#airConditioner.stop();
+        this.#light.turnOff();
+        this.#securitySystem.enable();
+    }
+
+    backHome(): void {
+        // Some additional business logic.....
+
+        this.#airConditioner.start();
+        this.#light.turnOn();
+        this.#securitySystem.disable();
+    }
+}
+
+class RemoteControl {
+    #light: Light;
+    #airConditioner: AirConditioner;
+
+    constructor(light: Light, airConditioner: AirConditioner) {
+        this.#light = light;
+        this.#airConditioner = airConditioner;
+    }
+
+    toggleLight(): void {
+        // Some additional business logic.....
+
+        if (this.#light.isTurnedOn) {
+            this.#light.turnOff();
         } else {
-            console.log("This note requires confirmation before editing the title.");
+            this.#light.turnOn();
         }
     }
 
-    get lastModifiedDate(): Date {
-        return this._lastModifiedDate;
-    }
-
-    get confirmedEdit(): boolean {
-        return this._confirmedEdit;
-    }
-
-    set confirmedEdit(value: boolean) {
-        this._confirmedEdit = value;
-    }
-
-    get completed(): boolean {
-        return this._completed;
-    }
-
-    set completed(value: boolean) {
-        this._completed = value;
-    }
-}
-
-interface ITodoList {
-    notes: Note[];
-    addNote(note: Note): void;
-    deleteNoteById(id: number): void;
-    editNoteById(id: number, newTitle: string, newContent: string): void;
-    getNoteById(id: number): Note | undefined;
-    getAllNotes(): Note[];
-    getNumberOfNotes(): number;
-    getNumberOfIncompleteNotes(): number;
-    autoDeleteEmptyNotes (): Note[];
-}
-
-class TodoList implements ITodoList {
-    notes: Note[];
-
-    constructor() {
-        this.notes = [];
-    }
-
-    addNote(note: Note): void {
-        this.notes.push(note);
-    }
-
-    deleteNoteById(id: number): void {
-        this.notes = this.notes.filter((note) => note.id !== id);
-    }
-
-    editNoteById(id: number, newTitle: string, newContent: string): void {
-        const noteToEdit = this.notes.find((note) => note.id === id);
-        if (noteToEdit) {
-            noteToEdit.title = newTitle;
-            noteToEdit.content = newContent;
+    toggleAirCondition(): void {
+        // Some additional business logic.....
+        if (this.#airConditioner.isWorking) {
+            this.#airConditioner.stop();
+        } else {
+            this.#airConditioner.start();
         }
     }
+}
+//**************************************************************************//
+// З використання патерна "Bridge"
 
-    getNoteById(id: number): Note | undefined {
-        return this.notes.find((note) => note.id === id);
+// Реалізація для різних типів пристроїв
+interface IDevice {
+    toggleDevice(): void;
+    getDeviceStatus(): boolean;
+}
+
+// Реалізація конкретного пристрою
+class SpecificDevice implements IDevice {
+    private isOn: boolean = false;
+
+    toggleDevice(): void {
+        this.isOn = !this.isOn;
     }
 
-    getAllNotes(): Note[] {
-        return this.notes;
-    }
-
-    getNumberOfNotes(): number {
-        return this.notes.length;
-    }
-
-    getNumberOfIncompleteNotes(): number {
-        return this.notes.filter((note) => !note.completed).length;
-    }
-
-    autoDeleteEmptyNotes (): Note[] {
-        return this.notes.filter(
-            (note) =>
-                note.content.length !== 0 &&
-                note.title.length !== 0
-        );
+    getDeviceStatus(): boolean {
+        return this.isOn;
     }
 }
 
-interface ITodoListWithSearchNotes {
-    notes: Note[];
-    searchNotesByTitleOrContent(keyword: string): Note[];
+// Абстракція для контролерів пристроїв
+abstract class HomeAndRemoteControl {
+    protected device: IDevice;
+
+    protected constructor(device: IDevice) {
+        this.device = device;
+    }
+
+    abstract toggle(): void;
 }
 
-class TodoListWithSearchNotes extends TodoList implements ITodoListWithSearchNotes {
-    notes: Note[];
+// Реалізація контролеру світла
+class LightRemoteControl extends HomeAndRemoteControl {
+    constructor(device: IDevice) {
+        super(device);
+    }
 
-    searchNotesByTitleOrContent(keyword: string): Note[] {
-        return this.notes.filter(
-            (note) =>
-                note.title.toLowerCase().includes(keyword.toLowerCase()) ||
-                note.content.toLowerCase().includes(keyword.toLowerCase())
-        );
+    toggle(): void {
+        this.device.toggleDevice();
     }
 }
 
-interface ITodoListWithSortNotesAndWithSearchNotes {
-    notes: Note[];
-    sortNotesByStatus(): void;
-    sortNotesByCreationDate(): void;
-}
-
-class TodoListWithSortNotesAndWithSearchNotes extends TodoListWithSearchNotes implements ITodoListWithSortNotesAndWithSearchNotes {
-    notes: Note[];
-
-    sortNotesByStatus(): void {
-        this.notes.sort((a, b) => Number(a.completed) - Number(b.completed));
+// Реалізація контролеру кондиціонера
+class AirConditionerRemoteControl extends HomeAndRemoteControl {
+    constructor(device: IDevice) {
+        super(device);
     }
 
-    sortNotesByCreationDate(): void {
-        this.notes.sort((a, b) => a.creationDate.getTime() - b.creationDate.getTime());
+    toggle(): void {
+        this.device.toggleDevice();
     }
 }
+
+// Реалізація охоронної системи
+class SecuritySystemHomeControlPanel extends HomeAndRemoteControl {
+    constructor(device: IDevice) {
+        super(device);
+    }
+
+    toggle(): void {
+        this.device.toggleDevice();
+    }
+}
+
+// Використання
+const lightDevice = new SpecificDevice();
+const lightRemoteControl = new LightRemoteControl(lightDevice);
+
+lightRemoteControl.toggle(); // Toggle the light
+const lightStatus = lightDevice.getDeviceStatus(); // Get light status
+
+const acDevice = new SpecificDevice();
+const acRemoteControl = new AirConditionerRemoteControl(acDevice);
+
+acRemoteControl.toggle(); // Toggle the air conditioner
+const acStatus = acDevice.getDeviceStatus(); // Get air conditioner status
+
+const securitySystem = new SpecificDevice();
+const securitySystemHomeControlPanel = new SecuritySystemHomeControlPanel(securitySystem);
+
+securitySystemHomeControlPanel.toggle(); // Toggle the securitySystem
+const securitySystemStatus = acDevice.getDeviceStatus(); // Get securitySystem status
