@@ -1,269 +1,127 @@
-//Ми розробляємо систему управління розумним будинком.
+//У нас є проста система керування задачами. Треба використовуючи патерн Спостерігач
+// модифікувати код таким чином, щоб клас юзер міг реагувати на додавання нової задачі
+// на дошку. Якщо assigneeId та user id збігаються, то клас user має установлювати
+// задачу у #activeTask.
 //
-// Ми можемо керувати світлом, системою кондиціонування та безпеки через
-// контрольну панель, що знаходиться у будинку.
-//
-// Light, AirConditioner та SecuritySystem не можна змінювати, це девайси
-// різних фірм, які надають деяке публічне апі для керування, яке можна
-// використовувати, щоб інтегрувати з нашою системою, та ми не можемо змінювати
-// їх реалізацію або поведінку!
-//
-// Наш клас HomeControlPanel має методи leaveHome та backHome та toggleDevice.
-// За допомогою leaveHome ми вимикаємо всі девайси та вмикаємо систему безпеки
-//
-// За допомогою backHome вмикаємо всі девайси та вимикаємо систему безпеки.
-//
-// toggleDevice вмикає або вимикає девайс в залежності від його стану.
-//
-// Пізніше ми додали новий метод контролю за розумним будинком - через
-// дистанційний пульт RemoteControl. Він не має доступу до управління системою
-// безпеки, але вміє керувати світлом та кондиціонером.
-//
-// Ваша задача відрефакторити існуючий код (окрім Light, AirConditioner та
-// SecuritySystem) використовуючи деякі патерн(и) які ми з вами розглянули на лекції.
-// Постарайтеся позбутися дублювання коду у класах та уніфікувати публічне апі девайсів.
-//
-// P.S: Не потрібно витрачати час на розбоку UI або модифікувати поведінку.
-// Приділіть більше уваги структуризації.
+// * Додаткове завдання: Використовуючи патерн стратегія, розширити логіку,
+// додавши кілька різних провайдерів нотифікацій: емейл, телеграм, смс.
+// Вибраний Провайдер також повинен реагувати на додавання задачі на дошку
+// та виводити інформацію про задачу та провайдер.
+// Наприклад: "EMAIL: task MyTask added to board"
 
-enum EDeviceType {
-    Light = "light",
-    AirConditioner = "air-conditioner",
-    SecuritySystem = "security-system",
+interface Observer {
+    update(task: Task): void;
 }
 
-class Light {
-    // НЕ ЗМІНЮЙТЕ ЦЕЙ  КЛАС
-
-    type = EDeviceType.Light;
-    #isTurnedOn = false;
-
-    get isTurnedOn(): boolean {
-        return this.#isTurnedOn;
-    }
-
-    turnOn() {
-        this.#isTurnedOn = true;
-        console.log("Light is ON");
-    }
-
-    turnOff() {
-        this.#isTurnedOn = false;
-        console.log("Light is OFF");
-
-    }
-
+interface NotificationStrategy {
+    notify(taskName: string): void;
 }
 
-
-class AirConditioner {
-    // НЕ ЗМІНЮЙТЕ ЦЕЙ  КЛАС
-    type = EDeviceType.AirConditioner;
-    #isWorking = false;
-
-    get isWorking(): boolean {
-        return this.#isWorking;
-    }
-
-    start() {
-        this.#isWorking = true;
-        console.log("Air Conditioner is ON");
-    }
-
-    stop() {
-        this.#isWorking = false;
-        console.log("Air Conditioner is OFF");
+class EmailNotification implements NotificationStrategy {
+    notify(taskName: string): void {
+        console.log(`EMAIL: task ${taskName} added to board`);
     }
 }
 
-class SecuritySystem {
-    // НЕ ЗМІНЮЙТЕ ЦЕЙ  КЛАС
-
-    type = EDeviceType.SecuritySystem;
-    #isWatching = false;
-
-    get isWatching(): boolean {
-        return this.#isWatching;
-    }
-
-    enable() {
-        this.#isWatching = true;
-        console.log("Security system is ON");
-    }
-
-    disable() {
-        this.#isWatching = false;
-        console.log("Security system is OFF");
+class TelegramNotification implements NotificationStrategy {
+    notify(taskName: string): void {
+        console.log(`TELEGRAM: task ${taskName} added to board`);
     }
 }
 
-class HomeControlPanel {
-    #light: Light;
-    #airConditioner: AirConditioner;
-    #securitySystem: SecuritySystem;
+class SMSNotification implements NotificationStrategy {
+    notify(taskName: string): void {
+        console.log(`SMS: task ${taskName} added to board`);
+    }
+}
 
+class Task {
     constructor(
-        light: Light,
-        airConditioner: AirConditioner,
-        securitySystem: SecuritySystem
+        public title: string,
+        public description: string,
+        public assigneeId: string
+    ) {}
+}
 
-    ) {
-        this.#light = light;
-        this.#securitySystem = securitySystem;
-        this.#airConditioner = airConditioner;
+class TaskBoard {
+    #tasks: Task[] = [];
+    #observers: Observer[] = [];
+    #notificationStrategy: NotificationStrategy;
+
+    constructor(notificationStrategy: NotificationStrategy) {
+        this.#notificationStrategy = notificationStrategy;
     }
 
-    toggleDevice(type: EDeviceType) {
-        // Some additional business logic.....
+    get tasks() {
+        return this.#tasks;
+    }
 
-        if (type === EDeviceType.Light) {
-            if (this.#light.isTurnedOn) {
-                this.#light.turnOff();
-            } else {
-                this.#light.turnOff();
-            }
-        } else if (type === EDeviceType.AirConditioner) {
-            if (this.#airConditioner.isWorking) {
-                this.#airConditioner.stop();
-            } else {
-                this.#airConditioner.start();
-            }
+    addTask(task: Task,taskName:string): void {
+        this.#tasks.push(task);
+        this.notifyStrategy(taskName);
+    }
 
-        } else if (type === EDeviceType.SecuritySystem) {
-            if (this.#securitySystem.isWatching) {
-                this.#securitySystem.disable();
-            } else {
-                this.#securitySystem.enable();
-            }
+    addObserver(observer: Observer): void {
+        this.#observers.push(observer);
+    }
+
+    private notifyObservers(task: Task): void {
+        this.#observers.forEach(observer => {
+            observer.update(task);
+        });
+    }
+
+    private notifyStrategy(taskName: string): void {
+        this.#notificationStrategy.notify(taskName);
+    }
+}
+
+class User implements Observer {
+    #activeTask?: Task;
+    name: string;
+    readonly id: string;
+
+    constructor(name: string) {
+        this.name = name;
+        this.id = "id" + Math.random().toString(16).slice(2);
+    }
+
+    get activeTask(): Task | undefined {
+        return this.#activeTask;
+    }
+
+    update(task: Task): void {
+        if (task.assigneeId === this.id) {
+            this.#activeTask = task;
+            console.log(`Користувач ${this.name} отримав нову задачу: ${task.title}`);
+            console.log(`Активна задача користувача ${this.name}: ${task.title}`);
         }
-    }
-
-    leaveHome(): void {
-        // Some additional business logic.....
-
-        this.#airConditioner.stop();
-        this.#light.turnOff();
-        this.#securitySystem.enable();
-    }
-
-    backHome(): void {
-        // Some additional business logic.....
-
-        this.#airConditioner.start();
-        this.#light.turnOn();
-        this.#securitySystem.disable();
-    }
-}
-
-class RemoteControl {
-    #light: Light;
-    #airConditioner: AirConditioner;
-
-    constructor(light: Light, airConditioner: AirConditioner) {
-        this.#light = light;
-        this.#airConditioner = airConditioner;
-    }
-
-    toggleLight(): void {
-        // Some additional business logic.....
-
-        if (this.#light.isTurnedOn) {
-            this.#light.turnOff();
-        } else {
-            this.#light.turnOn();
-        }
-    }
-
-    toggleAirCondition(): void {
-        // Some additional business logic.....
-        if (this.#airConditioner.isWorking) {
-            this.#airConditioner.stop();
-        } else {
-            this.#airConditioner.start();
-        }
-    }
-}
-//**************************************************************************//
-// З використання патерна "Bridge"
-
-// Реалізація для різних типів пристроїв
-interface IDevice {
-    toggleDevice(): void;
-    getDeviceStatus(): boolean;
-}
-
-// Реалізація конкретного пристрою
-class SpecificDevice implements IDevice {
-    private isOn: boolean = false;
-
-    toggleDevice(): void {
-        this.isOn = !this.isOn;
-    }
-
-    getDeviceStatus(): boolean {
-        return this.isOn;
-    }
-}
-
-// Абстракція для контролерів пристроїв
-abstract class HomeAndRemoteControl {
-    protected device: IDevice;
-
-    protected constructor(device: IDevice) {
-        this.device = device;
-    }
-
-    abstract toggle(): void;
-}
-
-// Реалізація контролеру світла
-class LightRemoteControl extends HomeAndRemoteControl {
-    constructor(device: IDevice) {
-        super(device);
-    }
-
-    toggle(): void {
-        this.device.toggleDevice();
-    }
-}
-
-// Реалізація контролеру кондиціонера
-class AirConditionerRemoteControl extends HomeAndRemoteControl {
-    constructor(device: IDevice) {
-        super(device);
-    }
-
-    toggle(): void {
-        this.device.toggleDevice();
-    }
-}
-
-// Реалізація охоронної системи
-class SecuritySystemHomeControlPanel extends HomeAndRemoteControl {
-    constructor(device: IDevice) {
-        super(device);
-    }
-
-    toggle(): void {
-        this.device.toggleDevice();
     }
 }
 
 // Використання
-const lightDevice = new SpecificDevice();
-const lightRemoteControl = new LightRemoteControl(lightDevice);
+const emailNotifier = new EmailNotification();
+const telegramNotifier = new TelegramNotification();
+const smsNotifier = new SMSNotification();
 
-lightRemoteControl.toggle(); // Toggle the light
-const lightStatus = lightDevice.getDeviceStatus(); // Get light status
+const taskBoardWithEmail = new TaskBoard(emailNotifier);
+const taskBoardWithTelegram = new TaskBoard(telegramNotifier);
+const taskBoardWithSMS = new TaskBoard(smsNotifier);
 
-const acDevice = new SpecificDevice();
-const acRemoteControl = new AirConditionerRemoteControl(acDevice);
+taskBoardWithEmail.addTask("Send an email");
+taskBoardWithTelegram.addTask("Send a telegram");
+taskBoardWithSMS.addTask("Send SMS");
 
-acRemoteControl.toggle(); // Toggle the air conditioner
-const acStatus = acDevice.getDeviceStatus(); // Get air conditioner status
+const user1 = new User("User 1");
+const user2 = new User("User 2");
 
-const securitySystem = new SpecificDevice();
-const securitySystemHomeControlPanel = new SecuritySystemHomeControlPanel(securitySystem);
+const taskBoard = new TaskBoard(new EmailNotification());
 
-securitySystemHomeControlPanel.toggle(); // Toggle the securitySystem
-const securitySystemStatus = acDevice.getDeviceStatus(); // Get securitySystem status
+taskBoard.addObserver(user1);
+taskBoard.addObserver(user2);
+
+const task1 = new Task("Task 1", "Description 1", user1.id);
+const task2 = new Task("Task 2", "Description 2", user2.id);
+
+taskBoard.addTask(task1,"task1");
+taskBoard.addTask(task2,"task2");
